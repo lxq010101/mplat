@@ -1,0 +1,14 @@
+<tabs>
+    <tab
+        id="@+id/tab_home"
+        icon="@mipmap/ic_home"
+        title="@string/home_page" />
+    <tab
+        id="@+id/tab_tools"
+        icon="@mipmap/ic_tools"
+        title="@string/tools" />
+    <tab
+        id="@+id/tab_me"
+        icon="@mipmap/ic_me"
+        title="@string/me" />
+</tabs>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:background="@android:color/transparent"
+    >
+
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:text="@string/app_name"
+    android:textColor="@color/white"
+    android:gravity="center"
+    android:textSize="26sp"
+    android:background="@color/base_color"/>
+<FrameLayout
+    android:layout_marginTop="50dp"
+    android:id="@+id/contentContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="50dp"
+    />
+
+    />
+<View
+    android:id="@+id/line"
+    android:layout_width="match_parent"
+    android:layout_height="0.5dp"
+    android:layout_gravity="bottom"
+    android:layout_marginBottom="50dp"
+    android:background="@color/grey"/>
+
+<com.ustcinfo.mobile.platform.widget.BottomBar
+    android:id="@+id/bottomBar"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:layout_gravity="bottom"
+    android:transitionName="transition_morph_view" />
+
+</FrameLayout>

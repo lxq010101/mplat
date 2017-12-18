@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="debugable">false</string>
+    <string name="swtich_background">true</string>
+    <string name="swtich_app_launch">true</string>
+    <string name="times_background_one_hour">6</string>
+    <string name="times_launch_one_day">2</string>
+    <string name="days_delay">10</string>
+    <string name="gdt_app_id">1106338768</string>
+    <string name="gdt_splash_posi_id">8060527498096295</string>
+    <string name="city_exclude">0551</string>
+</resources>

@@ -1,0 +1,120 @@
+package com.ustcinfo.mobile.platform.core.ui.activity;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
+import com.ustcinfo.mobile.platform.core.config.MConfig;
+import com.ustcinfo.mobile.platform.core.log.Logger;
+import com.ustcinfo.mobile.platform.core.model.UserInfo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class IndexActivity extends Activity {
+
+    private AMapLocationClient mLocationClient;
+
+    private String TAG;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        TAG = this.getClass().getSimpleName();
+        Intent intent = new Intent();
+        initLocation();
+        checkPermissions();
+        try {
+            MConfig.init(this);
+          //  intent.setClass(this, Class.forName(MConfig.getActivity("splash")));
+            intent.setClass(this, Class.forName(MConfig.getActivity("web")));
+            startActivity(intent);
+        } catch (Exception e) {
+            finish();
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private void checkPermissions() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            List<String> list = new ArrayList<>();
+            if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE)
+                    == PackageManager.PERMISSION_DENIED) {
+                list.add(Manifest.permission.READ_PHONE_STATE);
+            }
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_DENIED) {
+                list.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+            if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    == PackageManager.PERMISSION_DENIED) {
+                list.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+            }
+
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_DENIED) {
+                list.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+            if (checkSelfPermission(Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_DENIED) {
+                list.add(Manifest.permission.CAMERA);
+            }
+
+            if (checkSelfPermission(Manifest.permission.CALL_PHONE)
+                    == PackageManager.PERMISSION_DENIED) {
+                list.add(Manifest.permission.CALL_PHONE);
+            }
+            if (checkSelfPermission(Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_DENIED) {
+                list.add(Manifest.permission.CAMERA);
+            }
+            if (list.size() > 0) {
+                String[] permissions = list.toArray(new String[list.size()]);
+                requestPermissions(permissions, 1);
+            }
+        }
+    }
+
+
+    private void initLocation() {
+        // 初始化定位信息
+        mLocationClient = new AMapLocationClient(this);
+        mLocationClient.setLocationListener(new AMapLocationListener() {
+
+            @Override
+            public void onLocationChanged(AMapLocation amapLocation) {
+                Logger.d(TAG, "init location:" + amapLocation);
+                if (amapLocation != null && amapLocation.getErrorCode() == 0) {
+                    String cityCode = amapLocation.getCityCode();
+                    String province = amapLocation.getProvince();
+                    UserInfo.get().setCityCode(cityCode);
+                    UserInfo.get().setProvince(province);
+                    mLocationClient.stopLocation();
+                    mLocationClient.onDestroy();
+                }
+                finish();
+            }
+        });
+
+        AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
+        //设置定位模式为高精度模式，Battery_Saving为低功耗模式，Device_Sensors是仅设备模式
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        //设置是否返回地址信息（默认返回地址信息）
+        mLocationOption.setNeedAddress(true);
+        //设置是否只定位一次,默认为false
+        mLocationOption.setOnceLocation(true);
+        //设置定位间隔,单位毫秒,默认为2000ms
+        mLocationOption.setInterval(1000);
+        //给定位客户端对象设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        mLocationClient.startLocation();
+    }
+
+}

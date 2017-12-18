@@ -1,0 +1,67 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+     android:background="#fff"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/welcome_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="尊敬的张三，欢迎您！"
+        android:textSize="18sp" />
+   
+    <com.ustcinfo.mobile.platform.widget.ArcProgress
+		android:id="@+id/handle_progress"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal"
+		android:layout_marginTop="20dp"
+		app:degree="100"
+		app:progressStyle="arc"
+		app:progressColor="@color/base_color"
+		app:radius="100dp"
+		app:tickDensity="3" />
+		
+	
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal">
+		<TextView
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:gravity="center"
+			android:text="当前代办量 \n 0"
+			android:textColor="@color/font_color"
+			android:textSize="16sp" />
+	
+		<TextView
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:gravity="center"
+			android:text="今日完成量 \n 0"
+			android:textColor="@color/font_color"
+			android:textSize="16sp" />
+	
+		<TextView
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:gravity="center"
+			android:text="当月指标 \n 0"
+			android:textColor="@color/font_color"
+			android:textSize="16sp" />
+	</LinearLayout> 
+
+						
+	
+	<View
+		android:layout_width="match_parent"
+		android:layout_height="6dp"
+		android:background="#f9f9f9" />
+</LinearLayout>

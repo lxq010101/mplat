@@ -1,0 +1,301 @@
+package com.ustcinfo.mobile.platform.ui.adapter;
+
+import android.content.Intent;
+import android.graphics.Color;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.ustcinfo.mobile.platform.R;
+import com.ustcinfo.mobile.platform.ability.utils.GlideApp;
+import com.ustcinfo.mobile.platform.core.appstore.AppStoreUtils;
+import com.ustcinfo.mobile.platform.core.appstore.AppType;
+import com.ustcinfo.mobile.platform.core.config.MConfig;
+import com.ustcinfo.mobile.platform.core.interfaces.FileCallBack;
+import com.ustcinfo.mobile.platform.core.interfaces.UninstallCallBack;
+import com.ustcinfo.mobile.platform.core.model.AppInfo;
+import com.ustcinfo.mobile.platform.core.model.UserInfo;
+import com.ustcinfo.mobile.platform.core.utils.MHttpClient;
+import com.ustcinfo.mobile.platform.core.utils.ResourceUtils;
+import com.ustcinfo.mobile.platform.ui.activity.AppStoreActivity;
+import com.ustcinfo.mobile.platform.ui.activity.BaseActivity;
+import com.ustcinfo.mobile.platform.widget.CornerMarkView;
+import com.ustcinfo.mobile.platform.widget.itemhelp.ItemTouchHelperForAdapter;
+import com.ustcinfo.mobile.platform.widget.itemhelp.ItemTouchHelperForViewHolder;
+import com.ustcinfo.mobile.platform.widget.itemhelp.OnStartDragListener;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+
+/**
+ * Created by lxq 2017/10/30
+ */
+public class DragAdapter extends RecyclerView.Adapter<DragAdapter.ItemViewHolder> implements ItemTouchHelperForAdapter {
+    private List<AppDisplayDragBean> list;
+    private LayoutInflater mInflater;
+    private OnStartDragListener mListener;
+    private BaseActivity activity;
+    private UninstallCallBack uninstallCallBack;
+
+    public DragAdapter(BaseActivity activity, List<AppDisplayDragBean> list, OnStartDragListener listener) {
+        this.activity = activity;
+        this.list = list;
+        this.mInflater = LayoutInflater.from(activity);
+        this.mListener = listener;
+    }
+
+    @Override
+    public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = mInflater.inflate(R.layout.item_app_common, parent, false);
+        ItemViewHolder holder = new ItemViewHolder(view);
+        return holder;
+    }
+
+    @Override
+    public void onBindViewHolder(final ItemViewHolder holder, final int position) {
+        if (position % 2 != 0) {
+            if (mListener == null)
+                holder.frameLayout.setBackgroundColor(0xffFAFAFA);
+        }else{
+            holder.frameLayout.setBackgroundColor(0xffffffff);
+        }
+
+        AppDisplayDragBean displayDragBean = list.get(position);
+        final AppInfo info = displayDragBean.appInfo;
+
+        //显示更多图标
+        if (TextUtils.equals(info.id, "more")) {
+            holder.tipView.setVisibility(View.GONE);
+            holder.iconView.setImageDrawable(ResourceUtils.getDrawable(R.mipmap.more));
+            holder.nameView.setVisibility(View.INVISIBLE);
+            holder.deleteBtn.setVisibility(View.INVISIBLE);
+            holder.appItemView.setOnClickListener(v -> {
+                Intent i = new Intent(activity, AppStoreActivity.class);
+                activity.startActivity(i);
+            });
+            return;
+        }
+        //同步排序位置
+        if (mListener != null)
+            info.syncOrder(position);
+
+        if (info.name != null) {
+            holder.nameView.setText(info.name);
+            holder.nameView.setVisibility(View.VISIBLE);
+        } else {
+            holder.nameView.setVisibility(View.INVISIBLE);
+        }
+        String url = MConfig.get("downloadAppIcon") + "?" + "appId=" + info.id + "&ticket=" + UserInfo.get().getTicketCache() + "&userId=" + UserInfo.get().getUserIdCache();
+        GlideApp.with(activity).load(url).diskCacheStrategy(DiskCacheStrategy.ALL).centerCrop().placeholder(R.mipmap.ic_launcher).error(R.mipmap.ic_launcher).into(holder.iconView);
+        holder.appItemView.setTag(info);
+        holder.deleteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showUninstallDialogTip(info);
+            }
+        });
+
+        holder.appItemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDeleteIcon(list, false);
+                notifyDataSetChanged();
+                AppInfo i = (AppInfo) view.getTag();
+                if (AppStoreUtils.checkUpgrade(activity, i)) {
+                    showUpgradeDialogByInfo(i);
+                } else {
+                    AppStoreUtils.launchAppByInfo(activity, i);
+                }
+            }
+        });
+
+        holder.appItemView.setOnLongClickListener(new View.OnLongClickListener() {
+
+            @Override
+            public boolean onLongClick(View v) {
+                showDeleteIcon(list, true);
+                notifyDataSetChanged();
+                return true;
+            }
+        });
+
+
+        if (displayDragBean.isCanShowDeleteIcon) {
+            holder.tipView.setVisibility(View.GONE);
+            holder.deleteBtn.setVisibility(View.VISIBLE);
+        } else {
+            holder.deleteBtn.setVisibility(View.GONE);
+
+            if (displayDragBean.count != 0) {
+                holder.tipView.setVisibility(View.VISIBLE);
+                holder.tipView.setConnerMarkText(String.valueOf(displayDragBean.count));
+            } else {
+                holder.tipView.setVisibility(View.GONE);
+            }
+        }
+    }
+
+
+    /**
+     * web应用在卸载的时候不能调用Activity的onresume生命周期函数，因此在卸载应用之后，需要主动通知
+     * 卸载的界面做刷新界面操作
+     */
+    public void setUninstallCallBack(UninstallCallBack callBack) {
+        uninstallCallBack = callBack;
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(ItemViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        holder.itemView.clearAnimation();
+    }
+
+
+    @Override
+    public int getItemCount() {
+        return list.size();
+    }
+
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+        swap(fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
+
+
+        return true;
+    }
+
+    @Override
+    public void onItemDismiss(int position) {
+        list.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    class ItemViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperForViewHolder {
+        FrameLayout frameLayout;
+        ImageView iconView;
+        CornerMarkView tipView;
+        TextView nameView;
+        ImageView deleteBtn;
+        LinearLayout appItemView;
+
+        public ItemViewHolder(View itemView) {
+            super(itemView);
+            frameLayout = (FrameLayout) itemView.findViewById(R.id.bg);
+            iconView = (ImageView) itemView.findViewById(R.id.app_icon);
+            tipView = (CornerMarkView) itemView.findViewById(R.id.wait_nubmer_tip);
+            nameView = (TextView) itemView.findViewById(R.id.app_label);
+            deleteBtn = (ImageView) itemView.findViewById(R.id.icon_delete);
+            appItemView = (LinearLayout) itemView.findViewById(R.id.app_item_ll);
+        }
+
+        @Override
+        public void onItemSelected() {
+            itemView.setBackgroundColor(Color.LTGRAY);
+        }
+
+        @Override
+        public void onItemClear() {
+            itemView.setBackgroundColor(0xffffffff);
+
+            notifyDataSetChanged();
+
+        }
+
+    }
+
+    /**
+     * 排序
+     */
+    private void swap(int fromPosition, int toPosition) {
+        if (fromPosition < toPosition) {
+            int count = toPosition - fromPosition;
+            for (int i = 0; i < count; i++) {
+                Collections.swap(list, fromPosition + i, fromPosition + i + 1);
+            }
+        } else if (fromPosition > toPosition) {
+            int count = fromPosition - toPosition;
+            for (int i = 0; i < count; i++) {
+                Collections.swap(list, fromPosition - i, fromPosition - i - 1);
+            }
+        }
+
+    }
+
+    /**
+     * 显示卸载应用提示
+     */
+    private void showUninstallDialogTip(final AppInfo info) {
+        activity.showAlertDialog(activity.getString(R.string.notice), "是否要删除应用",
+                v -> activity.dissmissAlertDialog(), v -> {
+                    AppStoreUtils.uninstallAppByInfo(activity, info);
+                    //web应用卸载时不能调用onresume生命周期函数，需要主动通知调用端
+                    if (uninstallCallBack != null && info.type == AppType.WEB_APP)
+                        uninstallCallBack.onUninstall();
+                    activity.dissmissAlertDialog();
+                });
+    }
+
+    private void showUpgradeDialogByInfo(AppInfo info) {
+        final AppInfo i = info;
+
+        activity.showAlertDialog(activity.getString(R.string.upgrade_notice),
+                String.format(activity.getString(R.string.upgrade_software), info.name),
+                v -> {
+                    activity.dissmissAlertDialog();
+                    AppStoreUtils.launchAppByInfo(activity, i);
+                }, v -> {
+                    activity.dissmissAlertDialog();
+                    activity.showProgressDialog(activity.getString(R.string.downloading));
+                    MHttpClient.get().getFileByAppInfo(i, new FileCallBack() {
+
+                        @Override
+                        public void onResposne(File file) {
+                            activity.dismissProgressDialog();
+                            AppStoreUtils.installedAppByType(activity, msg -> activity.toast(msg), file, i.type);
+                        }
+
+                        @Override
+                        public void inProgress(int progress) {
+                            String str = "下载中"+progress+"%";
+                            activity.showProgressDialog(str);
+                        }
+
+                        @Override
+                        public void onError(String msg) {
+                            activity.dismissProgressDialog();
+                            activity.toast(activity.getString(R.string.download_failed));
+                        }
+                    });
+                }, !info.isForceUpdate, true);
+    }
+
+    private void showDeleteIcon(List<AppDisplayDragBean> list, boolean yesOrNo) {
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).isCanShowDeleteIcon = yesOrNo;
+        }
+    }
+
+    public static class AppDisplayDragBean {
+        public boolean isCanShowDeleteIcon;
+        public int count;
+        public AppInfo appInfo;
+
+        @Override
+        public String toString() {
+            return "AppDisplayDragBean{" +
+                    "isCanShowDeleteIcon=" + isCanShowDeleteIcon +
+                    ", appInfo=" + appInfo +
+                    '}';
+        }
+    }
+}

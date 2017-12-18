@@ -1,0 +1,284 @@
+package com.ustcinfo.mobile.platform.ui.fragment;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.ustcinfo.mobile.platform.R;
+import com.ustcinfo.mobile.platform.core.appstore.AppStore;
+import com.ustcinfo.mobile.platform.core.appstore.AppStoreUtils;
+import com.ustcinfo.mobile.platform.core.constants.Constants;
+import com.ustcinfo.mobile.platform.core.core.MLogin;
+import com.ustcinfo.mobile.platform.core.core.SystemCore;
+import com.ustcinfo.mobile.platform.core.interfaces.AppRequestCallBack;
+import com.ustcinfo.mobile.platform.core.interfaces.LoginCallBack;
+import com.ustcinfo.mobile.platform.core.model.AppInfo;
+import com.ustcinfo.mobile.platform.core.model.UserInfo;
+import com.ustcinfo.mobile.platform.core.utils.DeviceUtil;
+import com.ustcinfo.mobile.platform.core.utils.Key64;
+import com.ustcinfo.mobile.platform.core.utils.MSharedPreferenceUtils;
+import com.ustcinfo.mobile.platform.ui.activity.AboutActivity;
+import com.ustcinfo.mobile.platform.ui.activity.AccountMangerActivity;
+import com.ustcinfo.mobile.platform.ui.activity.AnnouncementActivity;
+import com.ustcinfo.mobile.platform.ui.activity.FeedBackActivity;
+import com.ustcinfo.mobile.platform.ui.activity.HomePageActivity;
+import com.ustcinfo.mobile.platform.ui.activity.PatternLockActivity;
+import com.ustcinfo.mobile.platform.ui.activity.PersonalDetailsActivity;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.OnClick;
+
+/**
+ * Created by SunChao on 2017/5/16.
+ */
+
+public class UserFragment extends BaseFragment {
+
+    @BindView(R.id.name_label)
+    TextView nameLabel;
+
+    @BindView(R.id.layout_change_account)
+    LinearLayout layoutChangeAccount;
+
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.anhui_fragment_user;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        initViews();
+    }
+
+    private void initViews() {
+        nameLabel = (TextView) mActivity.findViewById(R.id.name_label);
+        nameLabel.setText(UserInfo.get().getName());
+//        if ("H8472580".equals(UserInfo.get().getUserId())
+//                || "H8472581".equals(UserInfo.get().getUserId())
+//                || "094182".equals(UserInfo.get().getUserId())
+//                || "71037106".equals(UserInfo.get().getUserId())) {
+//            layoutChangeAccount.setVisibility(View.VISIBLE);
+//        }
+    }
+
+
+    @OnClick({R.id.ll_mine_info, R.id.layout_manage_account, R.id.layout_index_query,
+            R.id.layout_income, R.id.layout_profile,
+            R.id.layout_feedback, R.id.layout_version,
+            R.id.layout_announcement, R.id.layout_edit_gesture_password,
+            R.id.layout_clear_cache, R.id.logging_out_btn, R.id.layout_change_account})
+    public void onClick(View v) {
+        Intent intent = null;
+        AppInfo info = null;
+
+        switch (v.getId()) {
+            case R.id.ll_mine_info:
+                break;
+            case R.id.layout_manage_account:
+                //账户管理
+                intent = new Intent(mActivity, AccountMangerActivity.class);
+                startActivity(intent);
+                break;
+
+            case R.id.layout_index_query:
+                AppStore.get().getAppByName("指标查询", new AppRequestCallBack() {
+                    @Override
+                    public void onAppSuccess(AppInfo app) {
+                        if (!TextUtils.isEmpty(app.startUrl))
+                            AppStoreUtils.launchApp(mActivity, app);
+                    }
+
+                    @Override
+                    public void onAppsSuccess(List<AppInfo> list) {
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        mActivity.toast(mActivity.getString(R.string.developing));
+                    }
+                });
+                break;
+            case R.id.layout_income:
+                //收入统计
+                AppStore.get().getAppByName("收入统计", new AppRequestCallBack() {
+                    @Override
+                    public void onAppSuccess(AppInfo app) {
+                        if (!TextUtils.isEmpty(app.startUrl))
+                            AppStoreUtils.launchApp(mActivity, app);
+                    }
+
+                    @Override
+                    public void onAppsSuccess(List<AppInfo> list) {
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        mActivity.toast(mActivity.getString(R.string.developing));
+                    }
+                });
+                break;
+            case R.id.layout_profile:
+                //个人信息
+                intent = new Intent(mActivity, PersonalDetailsActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.layout_feedback:
+                intent = new Intent(mActivity, FeedBackActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.layout_version:
+                intent = new Intent(mActivity, AboutActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.layout_announcement:
+                intent = new Intent(mActivity, AnnouncementActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.logging_out_btn:
+                showExitApp();
+                break;
+            case R.id.layout_edit_gesture_password:
+                //手势密码
+                mActivity.startActivity(new Intent(mActivity, PatternLockActivity.class));
+                break;
+            case R.id.layout_clear_cache: // 清除缓存
+                clearApkCache();
+                break;
+            case R.id.layout_change_account: // 切换账号
+                changeAccount();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 再次确认退出
+     */
+    private void showExitApp() {
+        mActivity.showAlertDialog("温馨提示", "确定安全退出?", new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mActivity.dissmissAlertDialog();
+            }
+        }, new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mActivity.dissmissAlertDialog();
+                SystemCore.get().exit(mActivity);
+            }
+        });
+    }
+
+    /**
+     * 清除缓存
+     * 2017-7-30 04:16:43
+     * chen.si
+     */
+    private void clearApkCache() {
+        // TODO: 2017/7/30 0030 暂时还未知数据中是否存在相关信息,需要进一步确认
+        SystemCore.get().clearFileCache();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mActivity.toast(getString(R.string.clear_cache_success));
+                    }
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * 更改用户账号
+     */
+    private void changeAccount() {
+        final EditText editText = new EditText(getActivity());
+        new AlertDialog.Builder(getActivity())
+                .setCancelable(false)
+                .setTitle(getString(R.string.change_account))
+                .setIcon(android.R.drawable.ic_dialog_info)
+                .setView(editText)
+                .setPositiveButton(getString(R.string.confirm), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (!TextUtils.isEmpty(editText.getText().toString())) {
+                            DeviceUtil.hideSoftInput(editText, getActivity().getApplicationContext());
+                            login(editText.getText().toString());
+                            dialog.dismiss();
+                        } else {
+                            mActivity.toast(getString(R.string.empty_account));
+                        }
+
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * 跳过密码验证码登录
+     */
+    private void login(final String userId) {
+        new MLogin(mActivity, true, new LoginCallBack() {
+            @Override
+            public void onLoginStart() {
+                mActivity.showProgressDialog();
+                UserInfo.get().setUserId(userId);
+            }
+
+            @Override
+            public void onLoginSuccess() {
+                goHomePage();
+                MSharedPreferenceUtils.saveBooleanSettings(mActivity, Constants.KEY_PREFERENCE_CHANGE_ACCOUNT, true);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                MSharedPreferenceUtils.saveStringSettings(mActivity, Constants.KEY_PREFERENCE_LOGIN_TIME, sdf.format(new Date()), true);
+            }
+
+            @Override
+            public void onLoginFailed(String message) {
+                mActivity.dismissProgressDialog();
+                mActivity.toast(message);
+            }
+        }).loginBySSO(true, userId, "1234");
+    }
+
+
+    /**
+     * 切换账号回到首页
+     */
+    private void goHomePage() {
+        Intent i = new Intent();
+        i.setClass(mActivity, HomePageActivity.class);
+        mActivity.startActivity(i);
+        mActivity.finish();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mActivity.dismissProgressDialog();
+    }
+}

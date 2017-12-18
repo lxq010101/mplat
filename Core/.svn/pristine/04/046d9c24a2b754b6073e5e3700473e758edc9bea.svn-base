@@ -1,0 +1,176 @@
+package com.ustcinfo.mobile.platform.core.appstore;
+
+import android.app.Activity;
+import android.content.Context;
+import android.os.Environment;
+import android.text.TextUtils;
+import android.widget.Toast;
+
+
+import com.ustcinfo.mobile.platform.core.R;
+import com.ustcinfo.mobile.platform.core.constants.Constants;
+import com.ustcinfo.mobile.platform.core.core.MApplication;
+import com.ustcinfo.mobile.platform.core.core.SystemCore;
+import com.ustcinfo.mobile.platform.core.interfaces.InstallFailedCallBack;
+import com.ustcinfo.mobile.platform.core.log.Logger;
+import com.ustcinfo.mobile.platform.core.model.AppInfo;
+import com.ustcinfo.mobile.platform.core.utils.NativeAppUtils;
+import com.ustcinfo.mobile.platform.core.utils.SDCardUtils;
+import com.ustcinfo.mobile.platform.core.utils.WebAppUtils;
+
+import java.io.File;
+
+public class AppStoreUtils {
+
+    /**
+     * 检测应用是否已经发布到应用市场
+     */
+    public static boolean isAppPublicInStore(String pkg) {
+        String sql = "SELECT * FROM app_list WHERE package = " + "'" + pkg + "'";
+        if (SystemCore.get().getDatabase().find(sql).size() > 0)
+            return true;
+        return false;
+    }
+
+    /**
+     * 获取应用的下载地址
+     */
+    public static String getDownloadPath() {
+        String path = null;
+        if (SDCardUtils.isHavaExternalStorage()) {
+            path = Environment.getExternalStorageDirectory().toString() + Constants.PATH_DOWNLOAD_APK;
+            File f = new File(path);
+            if (!f.exists())
+                f.mkdirs();
+        } else {
+            path = MApplication.getApplication().getCacheDir().getAbsolutePath();
+        }
+        return path;
+    }
+
+    /**
+     * 获取web app解压路径
+     */
+    public static final String getWebAppExtractPath() {
+        String path = null;
+        if (SDCardUtils.isHavaExternalStorage()) {
+            path = Environment.getExternalStorageDirectory().toString() + Constants.PATH_WEB_CACHE;
+            File f = new File(path);
+            if (!f.exists())
+                f.mkdirs();
+        } else {
+            path = MApplication.getApplication().getCacheDir().getAbsolutePath();
+        }
+        return path;
+    }
+    /**
+     * 获取应用下载到本地的存放名称
+     * */
+    public static String getFileNameByAppInfo(AppInfo info) {
+        String extension = null;
+        switch (info.type) {
+            case 0:
+                extension = ".apk";
+                break;
+            case 2:
+                extension = ".zip";
+                break;
+        }
+        return new StringBuilder().append(info.packageName)
+                .append("-").append(info.version).append(extension).toString();
+    }
+
+
+    /**
+     * 根据应用类型安装应用
+     * 原生应用打开安装界面
+     * Web应用解压至下载目录
+     */
+    public static void installedAppByType (Context activity, InstallFailedCallBack callback , File file, int type) {
+        Logger.d("AppStoreUtils", "install app ,name:" + file.getName() + " ,type" + type);
+        if (type == 0) {
+            NativeAppUtils.installApp(activity, file);
+        } else if (type == 2) {
+            try {
+                WebAppUtils.installApp(file);
+            }catch (Exception e){
+                e.printStackTrace();
+                Logger.e("AppStoreUtils" ,e.getMessage());
+                if(callback != null)
+                     callback.onFailed(e.getMessage());
+            }
+        }
+    }
+
+
+    public static void launchAppByInfo(Activity activity, AppInfo info) {
+        switch (info.type) {
+            case 0:
+                NativeAppUtils.launch(activity, info);
+                break;
+            case 2:
+            case 3:
+                WebAppUtils.launch(activity, info);
+                break;
+        }
+    }
+
+
+    public static void uninstallAppByInfo(Context context, AppInfo info) {
+        switch (info.type) {
+            case AppType.ANDROID:
+                NativeAppUtils.uninstall(context, info);
+                break;
+            case AppType.WEB_APP:
+                WebAppUtils.uninstall(info);
+                break;
+            case AppType.WEB_INLINE_APP:
+                Toast.makeText(context,context.getString(R.string.can_not_uninstall_url_app),Toast.LENGTH_LONG).show();
+            default:
+                Toast.makeText(context,context.getString(R.string.can_not_uninstall_url_app),Toast.LENGTH_LONG).show();
+                break;
+        }
+    }
+
+    /**
+     * 检测应用是否安装
+     *
+     * @warn 原生应用根据包名检测是否安装
+     * WebApp 检测SD卡中是否具有文件目录
+     * 在线配置的应用（url）返回值永远为true
+     * 本地工程代码配置的应用（local）返回值永远为true
+     */
+    public static boolean isAppInstalled(Context context, AppInfo info) {
+        if (info.type == 0) {
+            //原生应用
+            return NativeAppUtils.isInstalled(context, info.packageName);
+        } else if (info.type == 2) {
+            //web App 查看存储路径是否有安装包
+            return WebAppUtils.isAppInstalled(info);
+        } else if (info.type == 3 || info.type == 4) {
+            //url && local  默认都是已安装
+            return true;
+        }
+        return false;
+    }
+
+
+    public static boolean checkUpgrade(Context context, AppInfo info) {
+        String localVer = null;
+        if (info.type == 0) {
+            //原生应用
+            localVer = NativeAppUtils.getVersion(context, info.packageName);
+        } else if (info.type == 2) {
+            //web App 查看存储路径是否有安装包
+            localVer = WebAppUtils.getVersion(info);
+        } else if (info.type == 3 || info.type == 4) {
+            //url && local  默认都是已安装
+            return false;
+        }
+        if (TextUtils.isEmpty(localVer) || !TextUtils.equals(localVer, info.version)) {
+            return true;
+        }
+        return false;
+    }
+
+}

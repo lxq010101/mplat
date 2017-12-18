@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:id="@+id/app_store_ll"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal"
+	android:background="@color/white"
+	android:padding="15dp">
+
+	<ImageView
+		android:id="@+id/app_store_icon"
+		android:layout_width="45dp"
+		android:layout_height="45dp"
+		android:layout_gravity="center_vertical"
+		android:src="@mipmap/ic_delete" />
+
+	<RelativeLayout
+		android:layout_width="0dp"
+		android:layout_height="match_parent"
+		android:padding="5dp"
+		android:gravity="center_vertical"
+		android:layout_weight="1">
+
+		<TextView
+			android:id="@+id/app_store_name"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/font_color"
+			android:text="修障"
+			android:textSize="16sp" />
+		<TextView
+			android:id="@+id/app_store_size"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignBottom="@+id/app_store_name"
+			android:layout_toRightOf="@id/app_store_name"
+			android:text="12.1M"
+			android:paddingLeft="5dp"
+			android:textColor="@color/font_hint_color"
+			android:textSize="10sp" />
+
+		<TextView
+			android:id="@+id/app_store_version"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_toRightOf="@id/app_store_size"
+			android:layout_alignBottom="@id/app_store_size"
+			android:text="版本：5.9.0"
+			android:paddingLeft="10dp"
+			android:ellipsize="end"
+			android:singleLine="true"
+			android:textColor="@color/font_hint_color"
+			android:textSize="10sp"
+			android:maxLines="2" />
+
+		<TextView
+			android:id="@+id/app_store_summary"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@id/app_store_name"
+			android:paddingLeft="5dp"
+			android:ellipsize="end"
+			android:textColor="@color/font_hint_color"
+			android:textSize="8sp"
+			android:maxLines="2" />
+
+	</RelativeLayout>
+
+	<RelativeLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_vertical"
+		android:layout_marginRight="10dp">
+		<Button
+			android:id="@+id/app_store_download"
+			android:layout_width="wrap_content"
+			android:layout_height="30dp"
+			android:layout_centerVertical="true"
+			android:text="@string/download"
+			android:textColor="@drawable/selector_text_color_app_download"
+			android:background="@drawable/selector_btn_app_download"
+			android:visibility="visible"
+			android:textSize="16sp" />
+		<com.ustcinfo.mobile.platform.widget.ArcProgress
+			android:id="@+id/app_store_progress"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerVertical="true"
+			app:degree="0"
+			app:progressStyle="arc"
+			android:visibility="visible"
+			app:progressColor="@color/base_color"
+			app:radius="20dp"
+			app:borderWidth="5dp"
+			app:tickWidth="20dp"
+			app:tickDensity="2" />
+	</RelativeLayout>
+
+
+</LinearLayout>

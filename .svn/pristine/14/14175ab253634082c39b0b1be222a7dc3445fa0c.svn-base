@@ -1,0 +1,359 @@
+package com.ustcinfo.mobile.platform.ui.activity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewStub;
+
+import com.ustcinfo.mobile.platform.R;
+import com.ustcinfo.mobile.platform.core.appstore.AppStore;
+import com.ustcinfo.mobile.platform.core.config.MConfig;
+import com.ustcinfo.mobile.platform.core.interfaces.FileCallBack;
+import com.ustcinfo.mobile.platform.core.interfaces.HttpRequestCallbak;
+import com.ustcinfo.mobile.platform.core.model.AppInfo;
+import com.ustcinfo.mobile.platform.core.utils.MHttpClient;
+import com.ustcinfo.mobile.platform.core.utils.NativeAppUtils;
+import com.ustcinfo.mobile.platform.core.utils.RequestParams;
+import com.ustcinfo.mobile.platform.ui.fragment.BaseFragment;
+import com.ustcinfo.mobile.platform.ui.fragment.HomePageFragment;
+import com.ustcinfo.mobile.platform.ui.fragment.ToolsFragment;
+import com.ustcinfo.mobile.platform.ui.fragment.UserFragment;
+import com.ustcinfo.mobile.platform.widget.ChangeColorIconWithTextView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by SunChao on 2017/5/12.
+ */
+
+public class HomePageActivity extends BaseActivity
+        implements ViewPager.OnPageChangeListener, OnClickListener {
+    private Handler mHandler = new Handler();
+
+    private ViewStub viewStub;
+
+    private ViewPager mViewPager;
+
+    private FragmentPagerAdapter mAdapter;
+
+    private List<BaseFragment> mTabs = new ArrayList<BaseFragment>();
+
+    private List<ChangeColorIconWithTextView> mTabIndicator =
+            new ArrayList<ChangeColorIconWithTextView>();
+
+    private HomePageFragment homePageFragment; // 首页 fragment
+
+    private ToolsFragment toolsFragment; // 工具 fragment
+
+
+    //当前处于哪个fragment
+    private int currentFragmentIndicator;
+
+    private int backCount = 0;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.anhui_activity_home_page);
+        viewStub = (ViewStub) findViewById(R.id.content_viewstub);
+        showProgressBar();
+
+        getWindow().getDecorView().post(() -> mHandler.post(() -> viewStub.inflate()));
+        getWindow().getDecorView().postDelayed(() -> mHandler.post(new DelayRunnable(this, new HomePageFragment(), new ToolsFragment(),
+                new UserFragment())), 500);
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    /*   SimpleDateFormat sdf  = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") ;
+        //一天后重新进行登陆
+        try {
+            Date loginTime = sdf.parse(MSharedPreferenceUtils.queryStringBySettings(this, Constants.KEY_PREFERENCE_LOGIN_TIME)) ;
+            int passTime = (int)((new Date().getTime() - loginTime.getTime()) / 1000 * 60 ) ;
+            Logger.d(TAG ,"login pass time "+passTime);
+            if(passTime > 2){
+                Intent i =  new Intent(this,SplashActivity.class) ;
+                startActivity(i);
+                finish() ;
+            }
+        }catch (ParseException e){
+        }*/
+    }
+
+
+    //检测升级：支持根据地理信息发布升级
+
+    private void checkUpgrade() {
+        final String pkg = getPackageName();
+        RequestParams p = new RequestParams();
+        p.put("package", pkg);
+        p.put("clientType", 1);
+        MHttpClient.get().post(MConfig.get("checkUpgrade"), p, new HttpRequestCallbak() {
+
+            @Override
+            public void onSuccess(JSONObject responseObj) {
+                try {
+                    JSONObject data = responseObj.getJSONObject("data");
+
+                    String id = data.getString("appId");
+                    String appName = data.getString("appName");
+                    String version = data.getString("appVersion");
+                    String upgradeContent = "你有新版本需要升级";
+                    try {
+                        upgradeContent = data.getString("upgradeContent");
+                    } catch (Exception e) {
+                    }
+
+                    String upgradeFlag = data.getString("updateFlag");
+                    final AppInfo info = new AppInfo();
+                    info.id = id;
+                    info.name = appName;
+                    info.version = version;
+                    info.packageName = pkg;
+                    //本地的版本号version name与服务器的版本进行比对，不一致则提示升级
+                    String locVersion = NativeAppUtils.getVersion(mActivity, pkg);
+                    if (!TextUtils.equals(locVersion, version)) {
+                        //强制升级
+                        //非强制升级
+                        showAlertDialog(getString(R.string.upgrade_notice), upgradeContent,
+                                new OnClickListener() {
+                                    @Override
+                                    public void onClick(View arg0) {
+                                        //强制升级
+                                        dissmissAlertDialog();
+                                        if (TextUtils.equals(upgradeFlag, "1")) {
+                                            toast("请务必下载最新版本");
+                                            finish();
+                                        }
+                                    }
+                                }, new OnClickListener() {
+
+                                    @Override
+                                    public void onClick(View arg0) {
+                                        //确认
+                                        dissmissAlertDialog();
+                                        downloadAppByInfo(info);
+                                    }
+                                });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailed(String msg) {
+                Log.e(this.getClass().getSimpleName(), msg);
+            }
+        });
+    }
+
+    @Override
+    public int getLayoutId() {
+        return R.layout.anhui_activity_home_page;
+    }
+
+    //下载APP
+    private void downloadAppByInfo(AppInfo info) {
+        showProgressDialog(getString(R.string.updating));
+        MHttpClient.get()
+                .getFileByAppInfo(info, new FileCallBack() {
+
+                    @Override
+                    public void onResposne(File file) {
+                        dismissProgressDialog();
+                        NativeAppUtils.installApp(mActivity, file);
+                    }
+
+                    @Override
+                    public void inProgress(int progress) {
+                        // TODO Auto-generated method stub
+
+                    }
+
+                    @Override
+                    public void onError(String msg) {
+                        dismissProgressDialog();
+                    }
+                });
+    }
+
+    private void initViews(HomePageFragment homePageFragment, ToolsFragment toolsFragment, UserFragment userFragment) {
+
+        this.homePageFragment = homePageFragment;
+        this.toolsFragment = toolsFragment;
+
+        mTabs.add(homePageFragment);
+        mTabs.add(toolsFragment);
+        mTabs.add(userFragment);
+
+        mAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public Fragment getItem(int i) {
+                return mTabs.get(i);
+            }
+
+            @Override
+            public int getCount() {
+                return mTabs.size();
+            }
+        };
+
+        ChangeColorIconWithTextView one =
+                (ChangeColorIconWithTextView) findViewById(R.id.id_indicator_one);
+        ChangeColorIconWithTextView two =
+                (ChangeColorIconWithTextView) findViewById(R.id.id_indicator_two);
+        ChangeColorIconWithTextView three =
+                (ChangeColorIconWithTextView) findViewById(R.id.id_indicator_three);
+        mTabIndicator.add(one);
+        mTabIndicator.add(two);
+        mTabIndicator.add(three);
+        one.setOnClickListener(this);
+        two.setOnClickListener(this);
+        three.setOnClickListener(this);
+        one.setIconAlpha(1.0f);
+        mViewPager = (ViewPager) findViewById(R.id.view_pager);
+        mViewPager.setOffscreenPageLimit(3);
+        mViewPager.setAdapter(mAdapter);
+        mViewPager.addOnPageChangeListener(this);
+        checkUpgrade();
+        AppStore.get().init(mActivity);
+        closeProgressBar();
+    }
+
+    /**
+     * 重置其他的Tab
+     */
+    private void resetOtherTabs() {
+        homePageFragment.resetDeleteIcon();
+        for (int i = 0; i < mTabIndicator.size(); i++) {
+            mTabIndicator.get(i).setIconAlpha(0);
+        }
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+  /*      if (positionOffset > 0)
+        {
+            ChangeColorIconWithTextView left = mTabIndicator.get(position);
+            ChangeColorIconWithTextView right = mTabIndicator.get(position + 1);
+            left.setIconAlpha(1 - positionOffset);
+            right.setIconAlpha(positionOffset);
+        }*/
+    }
+
+    @Override
+    public void onPageSelected(int i) {
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int i) {
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_CANCELED) {
+            toast("请务必下载最新版本");
+            finish();
+        } else {
+            toast("正在安装");
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        resetOtherTabs();
+        switch (v.getId()) {
+            case R.id.id_indicator_one:
+                mTabIndicator.get(0).setIconAlpha(1.0f);
+                mViewPager.setCurrentItem(0, false);
+                currentFragmentIndicator = 0;
+                break;
+            case R.id.id_indicator_two:
+                mTabIndicator.get(1).setIconAlpha(1.0f);
+                mViewPager.setCurrentItem(1, false);
+                currentFragmentIndicator = 1;
+                break;
+            case R.id.id_indicator_three:
+                mTabIndicator.get(2).setIconAlpha(1.0f);
+                mViewPager.setCurrentItem(2, false);
+                currentFragmentIndicator = 2;
+                break;
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if ((currentFragmentIndicator == 0 && homePageFragment.resetDeleteIcon()) ||
+                    (currentFragmentIndicator == 1 && toolsFragment.resetDeleteIcon()) || currentFragmentIndicator == 2) {
+                //3秒之内连续两次返回按钮，则退出应用
+                if (backCount == 0) {
+                    backCount = 1;
+                    toast(getString(R.string.make_sure_exit));
+                    new CountDownTimer(3000, 1000) {
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            backCount = 0;
+                        }
+                    }.start();
+                } else {
+                    finish();
+                }
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+    static class DelayRunnable implements Runnable {
+        private WeakReference<HomePageActivity> homePageActivityWeakReference;
+        private WeakReference<HomePageFragment> homePageFragmentWeakReference;
+        private WeakReference<ToolsFragment> toolsFragmentWeakReference;
+        private WeakReference<UserFragment> userFragmentWeakReference;
+
+        public DelayRunnable(HomePageActivity homePageActivity, HomePageFragment homePageFragment, ToolsFragment toolsFragment, UserFragment userFragment) {
+            homePageActivityWeakReference = new WeakReference(homePageActivity);
+            homePageFragmentWeakReference = new WeakReference(homePageFragment);
+            toolsFragmentWeakReference = new WeakReference(toolsFragment);
+            userFragmentWeakReference = new WeakReference(userFragment);
+        }
+
+        @Override
+        public void run() {
+            if (homePageActivityWeakReference.get() != null) {
+                homePageActivityWeakReference.get().initViews(homePageFragmentWeakReference.get(), toolsFragmentWeakReference.get(),
+                        userFragmentWeakReference.get());
+            }
+
+        }
+    }
+}

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/white"
+	android:orientation="vertical">
+
+	<TextView
+		android:id="@+id/welcome_title"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="#f9f9f9"
+		android:padding="10dp"
+		android:text="尊敬的张三，欢迎您！"
+		android:textColor="@color/font_color"
+		android:textSize="18sp" />
+
+	<com.ustcinfo.mobile.platform.widget.ArcProgress
+		android:id="@+id/handle_progress"
+		android:layout_width="178dp"
+		android:layout_height="174dp"
+		android:layout_gravity="center_horizontal"
+		android:layout_marginTop="20dp"
+		app:degree="110"
+		app:progressColor="@color/base_color"
+		app:progressStyle="arc"
+		app:radius="90dp"
+		app:tickDensity="3" />
+
+	<LinearLayout
+		android:id="@+id/wait_handle"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+		<ImageView
+			android:id="@+id/drag_switch"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:background="@mipmap/ic_action_drag_handler" />
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal">
+			<TextView
+				android:id="@+id/wait_handle_number"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:gravity="center"
+				android:text="当前代办量 \n0"
+				android:textColor="#0292e8"
+				android:textSize="16sp" />
+
+			<TextView
+				android:id="@+id/done_number"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:gravity="center"
+				android:text="今日完成量 \n0"
+				android:textColor="#0292e8"
+				android:textSize="16sp" />
+
+			<TextView
+				android:id="@+id/indicator_number"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:gravity="center"
+				android:text="当月指标 \n0"
+				android:textColor="#0292e8"
+				android:textSize="16sp" />
+		</LinearLayout>
+	</LinearLayout>
+
+	<View
+		android:id="@+id/hide"
+		android:layout_width="match_parent"
+		android:layout_height="2dp"
+		android:background="@color/divide" />
+
+	<com.ustcinfo.mobile.platform.widget.DragGridView
+		android:id="@+id/app_list_view"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_margin="5dp"
+		android:background="@color/white"
+		android:cacheColorHint="#00000000"
+		android:drawSelectorOnTop="false"
+		android:focusable="true"
+		android:focusableInTouchMode="true"
+		android:horizontalSpacing="10dp"
+		android:listSelector="@null"
+		android:numColumns="4"
+		android:scrollbars="none"
+		android:stretchMode="columnWidth"
+		android:verticalSpacing="5dp" />
+</LinearLayout>

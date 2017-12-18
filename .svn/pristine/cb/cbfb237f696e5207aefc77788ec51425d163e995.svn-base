@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <config activity="login">com.ustcinfo.mobile.platform.ui.activity.LoginActivity</config>
+    <config activity="splash">com.ustcinfo.mobile.platform.ui.activity.SplashActivity</config>
+    <config activity="web_activity">com.ustcinfo.mobile.platform.ui.activity.WebViewActivity</config>
+    <config activity="web">com.ustcinfo.mobile.platform.ability.jsbridge.WebViewActivity</config>
+</resources>

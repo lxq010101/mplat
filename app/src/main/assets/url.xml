@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--警告核心功能接口，不能修改 @start{-->
+    <!--登陆-->
+    <config url="login">static/index/api/login</config>
+    <!--获取验证码-->
+    <config url="getVerifyCode">static/index/api/getVerifyCode</config>
+    <!--单点登录-->
+    <config url="loginBySSO">static/index/api/ssoapi</config>
+    <!--应用下载-->
+    <config url="downloadApp">static/index/api/downloadApp</config>
+    <!--图片下载-->
+    <config url="downloadAppIcon">static/index/api/downloadAppIcon</config>
+    <!--获取应用列表-->
+    <config url="getAppList">static/index/api/getAppList</config>
+    <!--检测升级-->
+    <config url="checkUpgrade">static/index/api/checkUpgrade</config>
+    <!--用户和registerId绑定-->
+    <config url="bindRegisterId">static/index/api/syncUserRegistration</config>
+
+    <!--子应用单点登陆-->
+    <config url="getAuthCode">static/index/api/getAuthCode</config>
+    <uri id="base_url">http://202.102.221.75:8231/eip-app-web/</uri>
+    <!--<uri id="base_url">http://192.168.80.71:8080/eip-app-web/</uri>-->
+    <!--<uri id="base_url">http://192.168.216.22:8080/eip-app-anhui/</uri>-->
+    <!--<uri id="base_url">http://192.168.137.116:8080/eip-app-anhui/</uri>-->
+
+    <!--}@end 警告核心功能接口，不能修改-->
+
+    <!--修改密码-->
+    <config url="modify_password">static/index/api/resetPassword</config>
+</resources>

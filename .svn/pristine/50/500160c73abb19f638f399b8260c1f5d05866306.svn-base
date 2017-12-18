@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tabs="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.activity.HomePageActivity">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="@string/app_name"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:textSize="26sp"
+        android:background="@color/base_color"/>
+    <ViewStub
+        android:id="@+id/content_viewstub"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout="@layout/activity_main_viewstub" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:background="@drawable/tab_bg"
+        android:orientation="horizontal">
+
+        <com.ustcinfo.mobile.platform.widget.ChangeColorIconWithTextView
+            android:id="@+id/id_indicator_one"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="5dp"
+            tabs:drawable="@mipmap/ic_home"
+            tabs:text="@string/home_page"
+            tabs:text_size="12sp" />
+
+        <com.ustcinfo.mobile.platform.widget.ChangeColorIconWithTextView
+            android:id="@+id/id_indicator_two"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="5dp"
+            tabs:drawable="@mipmap/ic_tools"
+            tabs:text="@string/tools"
+            tabs:text_size="12sp" />
+
+        <com.ustcinfo.mobile.platform.widget.ChangeColorIconWithTextView
+            android:id="@+id/id_indicator_three"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:padding="5dp"
+            tabs:drawable="@mipmap/ic_me"
+            tabs:text="@string/me"
+            tabs:text_size="12sp" />
+    </LinearLayout>
+</LinearLayout>

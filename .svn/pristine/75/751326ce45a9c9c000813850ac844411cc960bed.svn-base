@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite">
+
+    <EditText
+        android:id="@+id/et_account_id"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_pwd_edit"
+        android:hint="@string/tip_account"
+        android:imeOptions="actionNext"
+        android:lines="1"
+        android:maxLength="20"
+        android:paddingLeft="10dp"
+        android:textSize="16sp" />
+
+    <com.ustcinfo.mobile.platform.widget.VerificationCodeView
+        android:id="@+id/code_id"
+        android:layout_width="120dp"
+        android:layout_height="40dp"
+        android:layout_alignEnd="@id/et_account_id"
+        android:layout_alignRight="@id/et_account_id"
+        android:layout_below="@id/et_account_id" />
+
+    <EditText
+        android:id="@+id/et_code_id"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignLeft="@id/et_account_id"
+        android:layout_alignStart="@id/et_account_id"
+        android:layout_below="@id/et_account_id"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_toLeftOf="@id/code_id"
+        android:layout_toStartOf="@id/code_id"
+        android:background="@drawable/bg_pwd_edit"
+        android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+        android:hint="@string/tip_code"
+        android:lines="1"
+        android:maxLength="4"
+        android:paddingLeft="10dp"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/btn_submit_id"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_below="@id/et_code_id"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/bg_login_btn"
+        android:text="@string/tip_submit"
+        android:textColor="@color/colorWhite"
+        android:textSize="15sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/btn_submit_id"
+        android:layout_alignLeft="@id/btn_submit_id"
+        android:layout_alignRight="@id/btn_submit_id"
+        android:layout_alignStart="@id/btn_submit_id"
+        android:layout_below="@id/btn_submit_id"
+        android:layout_marginTop="17dp"
+        android:gravity="center"
+        android:text="@string/tip_msg"
+        android:textColor="@color/red"
+        android:textSize="10sp" />
+</RelativeLayout>

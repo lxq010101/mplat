@@ -1,0 +1,15 @@
+<resources>
+    <string name="make_sure_your_query_type">请确认你查找的应用类型</string>
+    <string name="can_not_uninstall_url_app">网页应用不能卸载</string>
+    <string name="none_apps_for_install">没有待安装应用</string>
+    <string name="data_parse_error_by_login">登陆数据解析有误，请联系运营商团队</string>
+    <string name="json_parse_error">数据解析有误</string>
+    <string name="string_encoding_error">字符编码转换有误</string>
+    <string name="error_contact_server">服务器请求有误</string>
+    <string name="loading">正在加载...</string>
+    <string name="notice">提示</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确定</string>
+    <string name="login_exception">登录异常</string>
+
+</resources>
